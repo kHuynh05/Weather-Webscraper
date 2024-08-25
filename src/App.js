@@ -42,7 +42,69 @@ const fs = require('fs').promises;
   
   });
 
-  console.log(weatherData)
+  await page.goto('https://www.weather.com/weather/tenday/l/29.7106,-95.5963', {
+    waitUntil: 'networkidle0',
+  });
+  
+  // Wait for the 10-day forecast to load
+  await page.waitForSelector('.DailyForecast--DisclosureList--nosQS', { timeout: 10000 });
+  
+  // Extract 10-day forecast data
+  const tenDayForecast = await page.evaluate(() => {
+    const forecastElements = document.querySelectorAll('.DailyForecast--DisclosureList--nosQS > details');
+    return Array.from(forecastElements).map(detail => {
+      const dayElement = detail.querySelector('.DetailsSummary--daypartName--kbngc');
+      const tempElements = detail.querySelectorAll('.DetailsSummary--temperature--1kVVZ');
+      const descElement = detail.querySelector('.DetailsSummary--extendedData--aaFeV');
+      
+      return {
+        day: dayElement ? dayElement.textContent.trim() : 'N/A',
+        highTemp: tempElements[0] ? tempElements[0].textContent.trim() : 'N/A',
+        lowTemp: tempElements[1] ? tempElements[1].textContent.trim() : 'N/A',
+        description: descElement ? descElement.textContent.trim() : 'N/A'
+      };
+    });
+  });
+  
+  // Combine today's weather and 10-day forecast
+  const combinedWeatherData = {
+    ...todayData,
+    tenDayForecast
+  };
+  
+  console.log(JSON.stringify(combinedWeatherData, null, 2));
+
+    waitUntil: 'networkidle0',
+  });
+  
+  // Wait for the 10-day forecast to load
+  await page.waitForSelector('.DailyForecast--DisclosureList--nosQS', { timeout: 10000 });
+  
+  // Extract 10-day forecast data
+  const tenDayForecast = await page.evaluate(() => {
+    const forecastElements = document.querySelectorAll('.DailyForecast--DisclosureList--nosQS > details');
+    return Array.from(forecastElements).map(detail => {
+      const dayElement = detail.querySelector('.DetailsSummary--daypartName--kbngc');
+      const tempElements = detail.querySelectorAll('.DetailsSummary--temperature--1kVVZ');
+      const descElement = detail.querySelector('.DetailsSummary--extendedData--aaFeV');
+      
+      return {
+        day: dayElement ? dayElement.textContent.trim() : 'N/A',
+        highTemp: tempElements[0] ? tempElements[0].textContent.trim() : 'N/A',
+        lowTemp: tempElements[1] ? tempElements[1].textContent.trim() : 'N/A',
+        description: descElement ? descElement.textContent.trim() : 'N/A'
+      };
+    });
+  });
+  
+  // Combine today's weather and 10-day forecast
+  const combinedWeatherData = {
+    ...todayData,
+    tenDayForecast
+  };
+  
+  console.log(JSON.stringify(combinedWeatherData, null, 2));
+
 	//get full page html 
 	const html = await page.content(); 
  
