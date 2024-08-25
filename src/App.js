@@ -18,17 +18,31 @@ const fs = require('fs').promises;
 
   // Extract temperature and weather condition
   const weatherData = await page.evaluate(() => {
-    const temperatureElement = document.querySelector('.CurrentConditions--tempValue--MHmYY');
-    const conditionElement = document.querySelector('.CurrentConditions--phraseValue--mZC_p');
+    const selectors = [
+      { selector: '.CurrentConditions--tempValue--MHmYY', property: 'temperature' },
+      { selector: '.CurrentConditions--phraseValue--mZC_p', property: 'condition' },
+      { selector: '.TodayDetailsCard--feelsLikeTempValue--2icPt', property: 'feelsLike' },
+      { selector: '.WeatherDetailsListItem--wxData--kK35q', property: 'highLow' },
+      { selector: '[data-testid="Wind"] span:nth-child(2)', property: 'wind' },
+      { selector: '[data-testid="PercentageValue"', property: 'humidity' },
+    ];
 
-      return {
-          temperature: temperatureElement ? temperatureElement.textContent : 'N/A',
-          condition: conditionElement ? conditionElement.textContent : 'N/A'
-      };
+
+    const data = selectors.reduce((acc, { selector, property }) => {
+      const element = document.querySelector(selector);
+      acc[property] = element ? element.textContent.trim() : 'N/A';
+      return acc;
+    }, {});
+  
+    // For future forecast, we might want to get multiple days
+    const forecastElements = document.querySelectorAll('.DailyForecast--narrative--3Ti6_');
+    data.futureForecast = Array.from(forecastElements).map(el => el.textContent.trim());
+  
+    return data;
+  
   });
 
-  console.log('Temperature:', weatherData.temperature);
-  console.log('Weather Condition:', weatherData.condition);
+  console.log(weatherData)
 	//get full page html 
 	const html = await page.content(); 
  
